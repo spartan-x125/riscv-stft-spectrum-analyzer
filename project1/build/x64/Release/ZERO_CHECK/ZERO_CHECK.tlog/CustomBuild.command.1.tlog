@@ -1,0 +1,10 @@
+^D:\CODE\RISC-V\PROJECT1\BUILD\CMAKEFILES\D52A62C1CF5B6A3821EA8A02AC2A26BA\GENERATE.STAMP.RULE
+setlocal
+D:\STM32CubeCLT_1.18.0\CMake\bin\cmake.exe -SD:/code/risc-v/project1 -BD:/code/risc-v/project1/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file D:/code/risc-v/project1/build/project1.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

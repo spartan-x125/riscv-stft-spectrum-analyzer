@@ -1,0 +1,3 @@
+D:/code/risc-v/project1/build/CMakeFiles/project1.dir
+D:/code/risc-v/project1/build/CMakeFiles/ALL_BUILD.dir
+D:/code/risc-v/project1/build/CMakeFiles/ZERO_CHECK.dir
