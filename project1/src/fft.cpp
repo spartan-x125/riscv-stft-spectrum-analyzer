@@ -6,6 +6,24 @@
 
 #if defined(__riscv) && defined(__riscv_vector)
 #include <riscv_vector.h>
+
+#if defined(__riscv_v_intrinsic)
+#define RVV_VSETVL_E64M1 __riscv_vsetvl_e64m1
+#define RVV_VLE64_V_F64M1 __riscv_vle64_v_f64m1
+#define RVV_VLSE64_V_F64M1 __riscv_vlse64_v_f64m1
+#define RVV_VFMUL_VV_F64M1 __riscv_vfmul_vv_f64m1
+#define RVV_VFADD_VV_F64M1 __riscv_vfadd_vv_f64m1
+#define RVV_VFSUB_VV_F64M1 __riscv_vfsub_vv_f64m1
+#define RVV_VSE64_V_F64M1 __riscv_vse64_v_f64m1
+#else
+#define RVV_VSETVL_E64M1 vsetvl_e64m1
+#define RVV_VLE64_V_F64M1 vle64_v_f64m1
+#define RVV_VLSE64_V_F64M1 vlse64_v_f64m1
+#define RVV_VFMUL_VV_F64M1 vfmul_vv_f64m1
+#define RVV_VFADD_VV_F64M1 vfadd_vv_f64m1
+#define RVV_VFSUB_VV_F64M1 vfsub_vv_f64m1
+#define RVV_VSE64_V_F64M1 vse64_v_f64m1
+#endif
 #endif
 
 namespace fft {
@@ -99,28 +117,28 @@ std::vector<Complex> RvvFft(const std::vector<double>& samples) {
 
         for (std::size_t i = 0; i < n; i += len) {
             for (std::size_t j = 0; j < half;) {
-                const std::size_t vl = vsetvl_e64m1(half - j);
+                const std::size_t vl = RVV_VSETVL_E64M1(half - j);
 
-                vfloat64m1_t upper_real = vle64_v_f64m1(real.data() + i + j, vl);
-                vfloat64m1_t upper_imag = vle64_v_f64m1(imag.data() + i + j, vl);
-                vfloat64m1_t lower_real = vle64_v_f64m1(real.data() + i + j + half, vl);
-                vfloat64m1_t lower_imag = vle64_v_f64m1(imag.data() + i + j + half, vl);
-                vfloat64m1_t wr = vlse64_v_f64m1(twiddle_real.data() + j * step, twiddle_stride, vl);
-                vfloat64m1_t wi = vlse64_v_f64m1(twiddle_imag.data() + j * step, twiddle_stride, vl);
+                vfloat64m1_t upper_real = RVV_VLE64_V_F64M1(real.data() + i + j, vl);
+                vfloat64m1_t upper_imag = RVV_VLE64_V_F64M1(imag.data() + i + j, vl);
+                vfloat64m1_t lower_real = RVV_VLE64_V_F64M1(real.data() + i + j + half, vl);
+                vfloat64m1_t lower_imag = RVV_VLE64_V_F64M1(imag.data() + i + j + half, vl);
+                vfloat64m1_t wr = RVV_VLSE64_V_F64M1(twiddle_real.data() + j * step, twiddle_stride, vl);
+                vfloat64m1_t wi = RVV_VLSE64_V_F64M1(twiddle_imag.data() + j * step, twiddle_stride, vl);
 
-                vfloat64m1_t temp_real = vfsub_vv_f64m1(
-                    vfmul_vv_f64m1(lower_real, wr, vl),
-                    vfmul_vv_f64m1(lower_imag, wi, vl),
+                vfloat64m1_t temp_real = RVV_VFSUB_VV_F64M1(
+                    RVV_VFMUL_VV_F64M1(lower_real, wr, vl),
+                    RVV_VFMUL_VV_F64M1(lower_imag, wi, vl),
                     vl);
-                vfloat64m1_t temp_imag = vfadd_vv_f64m1(
-                    vfmul_vv_f64m1(lower_real, wi, vl),
-                    vfmul_vv_f64m1(lower_imag, wr, vl),
+                vfloat64m1_t temp_imag = RVV_VFADD_VV_F64M1(
+                    RVV_VFMUL_VV_F64M1(lower_real, wi, vl),
+                    RVV_VFMUL_VV_F64M1(lower_imag, wr, vl),
                     vl);
 
-                vse64_v_f64m1(real.data() + i + j, vfadd_vv_f64m1(upper_real, temp_real, vl), vl);
-                vse64_v_f64m1(imag.data() + i + j, vfadd_vv_f64m1(upper_imag, temp_imag, vl), vl);
-                vse64_v_f64m1(real.data() + i + j + half, vfsub_vv_f64m1(upper_real, temp_real, vl), vl);
-                vse64_v_f64m1(imag.data() + i + j + half, vfsub_vv_f64m1(upper_imag, temp_imag, vl), vl);
+                RVV_VSE64_V_F64M1(real.data() + i + j, RVV_VFADD_VV_F64M1(upper_real, temp_real, vl), vl);
+                RVV_VSE64_V_F64M1(imag.data() + i + j, RVV_VFADD_VV_F64M1(upper_imag, temp_imag, vl), vl);
+                RVV_VSE64_V_F64M1(real.data() + i + j + half, RVV_VFSUB_VV_F64M1(upper_real, temp_real, vl), vl);
+                RVV_VSE64_V_F64M1(imag.data() + i + j + half, RVV_VFSUB_VV_F64M1(upper_imag, temp_imag, vl), vl);
 
                 j += vl;
             }
