@@ -1,0 +1,9 @@
+#pragma once
+
+#define TARGET_FREQUENCY 1000.0f
+#define DATASET_PATH "../dataset"
+#define ENABLE_UAC_INPUT 0
+#define ENABLE_WEB_SPECTROGRAM 0
+#define STFT_FRAME_SIZE 1024
+#define STFT_HOP_SIZE 512
+#define MEL_BAND_COUNT 64
