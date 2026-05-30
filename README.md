@@ -1,148 +1,132 @@
-# riscv-audio-fft-extractor
+# riscv-stft-spectrum-analyzer
 
-一个面向 RISC-V 平台的音频 FFT 频点提取项目。项目会扫描指定数据集目录中的音频文件，对每个音频执行 FFT，提取目标频率附近的频谱幅值，并为每个音频生成对应的结果文本和频谱图。
+面向 RISC-V/RVV 的跨平台音频频谱分析仓库，包含一个单频点 FFT 幅度提取器和一个 STFT 频谱分析可视化工具。
 
-## 功能特性
+## 子项目概览
 
-- 扫描 `dataset` 目录中的音频文件。
-- 对每个音频执行 FFT，得到频谱数据。
-- 提取 `TARGETFREQUENCY` 对应的最近频点幅值，默认目标频率为 `1000Hz`。
-- 在 `dataset/result` 中输出每个音频对应的 `.txt` 结果文件。
-- 在 `dataset/result` 中输出每个音频对应的 `_spectrum.svg` 频谱图。
-- WAV 文件可直接解码。
-- MP3、FLAC、OGG、M4A、AAC、WMA 等格式在系统安装 `ffmpeg` 后可解码。
-- 在 RISC-V 且启用 RVV 的编译环境下，使用 RVV 分支执行 FFT 蝶形计算；其它平台使用普通标量 FFT。
+- `audio-fft-extractor`：对音频执行 FFT，提取目标频率 bin 的幅度，并输出文本结果和 SVG 频谱图。适合快速验证单频点幅度。
+- `stft-spectrum-analyzer`：对音频执行 STFT，生成频谱图 PNG、梅尔频谱图 PNG、目标频率幅度曲线 SVG 和时间序列 TXT。适合做完整的时频分析和可视化。
 
-## 项目结构
+## 目录结构
 
 ```text
 .
-├── dataset/                  # 输入音频目录
-│   └── result/               # 输出结果目录
-├── project1/
+├── audio-fft-extractor/
 │   ├── CMakeLists.txt
 │   ├── include/
-│   │   ├── audio_loader.h
-│   │   ├── fft.h
-│   │   └── settings.h
 │   └── src/
-│       ├── audio_loader.cpp
-│       ├── fft.cpp
-│       └── main.cpp
+├── dataset/
+│   └── result/
+├── stft-spectrum-analyzer/
+│   ├── CMakeLists.txt
+│   ├── audio_io.cpp / audio_io.h
+│   ├── image_writer_scalar.cpp
+│   ├── image_writer_rvv.cpp
+│   ├── stft.h
+│   ├── stft_adaptive.cpp / stft_adaptive.h
+│   ├── stft_scalar.cpp
+│   ├── stft_intra_rvv.cpp
+│   ├── stft_multi_rvv.cpp
+│   ├── result/
+│   ├── README.md
+│   ├── 用户手册.md
+│   └── 代码导读.md
+├── changes.md
+├── workflow.md
+├── workflow2.md
+├── name.txt
 └── README.md
 ```
 
-## 环境要求
+## 快速开始
 
-- CMake 3.16 或更高版本
+克隆仓库并进入目录：
+
+```bash
+git clone <your-repository-url> riscv-stft-spectrum-analyzer
+cd riscv-stft-spectrum-analyzer
+```
+
+准备音频：
+
+```bash
+mkdir -p dataset
+cp your_audio.wav dataset/
+```
+
+构建并运行 STFT 分析器：
+
+```bash
+cmake -S stft-spectrum-analyzer -B stft-spectrum-analyzer/build -DCMAKE_BUILD_TYPE=Release
+cmake --build stft-spectrum-analyzer/build
+./stft-spectrum-analyzer/build/stft-spectrum-analyzer
+```
+
+Windows Visual Studio 生成器：
+
+```powershell
+cmake -S stft-spectrum-analyzer -B stft-spectrum-analyzer/build
+cmake --build stft-spectrum-analyzer/build --config Release
+.\stft-spectrum-analyzer\build\Release\stft-spectrum-analyzer.exe
+```
+
+构建并运行单频点 FFT 提取器：
+
+```bash
+cmake -S audio-fft-extractor -B audio-fft-extractor/build -DCMAKE_BUILD_TYPE=Release
+cmake --build audio-fft-extractor/build
+./audio-fft-extractor/build/audio-fft-extractor
+```
+
+## RISC-V RVV 加速
+
+在 RISC-V 平台上，使用支持 RVV 的 GCC/Clang 工具链，并传入芯片匹配的 `-march` 和 `-mabi`：
+
+```bash
+cmake -S stft-spectrum-analyzer -B stft-spectrum-analyzer/build -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_CXX_FLAGS="-O3 -march=rv64gcv -mabi=lp64d"
+cmake --build stft-spectrum-analyzer/build
+./stft-spectrum-analyzer/build/stft-spectrum-analyzer
+```
+
+运行日志会显示：
+
+```text
+Platform: RISC-V
+RVV STFT acceleration: Enabled
+```
+
+如果显示 `Disabled`，通常说明编译器没有定义 `__riscv_vector`，需要检查工具链版本、`-march` 和 ABI 设置。
+
+## 平台支持矩阵
+
+| 功能 | x86_64 | ARM64 | RISC-V 标量 | RISC-V RVV |
+|------|--------|-------|-------------|------------|
+| FFT/STFT | 支持 | 支持 | 支持 | 支持 |
+| 帧内向量化 | 不适用 | 不适用 | 不适用 | 支持 |
+| 多帧向量化 | 不适用 | 不适用 | 不适用 | 支持 |
+| 频谱图绘制 | 支持 | 支持 | 支持 | 支持 |
+| RVV 加速绘制 | 不适用 | 不适用 | 不适用 | 支持 |
+
+## 依赖
+
+必需：
+
+- CMake 3.16+
 - 支持 C++17 的 C++ 编译器
-- 可选：`ffmpeg`，用于解码 WAV 以外的音频格式
 
-Windows 下可使用 Visual Studio 2022 的 C++ 工具链；Linux 或 RISC-V 交叉编译环境下可使用 GCC/Clang。
+可选：
 
-## 构建方法
+- FFmpeg 开发库：用于通过 `libavformat/libavcodec` 解码常见音频格式。
+- 系统 `ffmpeg` 命令：未链接 FFmpeg 库时，用作 MP3/FLAC 等格式的回退解码方式。
+- PortAudio：启用 UAC 实时输入接口时需要。
 
-在仓库根目录执行：
+## 常见问题
 
-```powershell
-cmake -S project1 -B project1/build
-cmake --build project1/build --config Release
-```
+如果找不到音频文件，请确认音频在仓库根目录的 `dataset/` 下。
 
-Linux 或 Makefile/Ninja 环境下通常可以执行：
+如果 MP3 无法解码，请确认系统能直接运行 `ffmpeg -version`，或安装 FFmpeg 开发库后重新 CMake。
 
-```bash
-cmake -S project1 -B project1/build
-cmake --build project1/build
-```
+如果 RISC-V 编译报 RVV intrinsic 未声明，请确认工具链支持 RVV 1.0，且 `-march` 包含 `v` 扩展，例如 `rv64gcv`。
 
-## 运行方法
-
-1. 将待处理音频放入仓库根目录下的 `dataset` 文件夹。
-2. 运行可执行文件。
-
-Windows Release 构建：
-
-```powershell
-.\project1\build\Release\project1.exe
-```
-
-Linux 或单配置生成器：
-
-```bash
-./project1/build/project1
-```
-
-运行完成后，结果会输出到：
-
-```text
-dataset/result
-```
-
-## 输出文件
-
-对于输入音频：
-
-```text
-dataset/example.wav
-```
-
-程序会生成：
-
-```text
-dataset/result/example.txt
-dataset/result/example_spectrum.svg
-```
-
-`.txt` 文件中包含：
-
-- 输入音频路径
-- 采样率
-- 声道数
-- 样本数量
-- FFT 点数
-- 目标频率
-- 实际选中的频点 bin
-- 实际频点频率
-- 该频点幅值
-
-`_spectrum.svg` 文件是对应音频的频谱图，可直接用浏览器打开查看。
-
-## 配置项
-
-目标频率和输入目录在以下文件中配置：
-
-```text
-project1/include/settings.h
-```
-
-默认配置：
-
-```cpp
-#define TARGETFREQUENCY 1000.0
-#define TARGET_DIRECTORY "dataset"
-```
-
-修改目标频率后，需要重新编译项目。
-
-## RISC-V / RVV 说明
-
-项目在代码中通过编译宏判断当前是否为 RISC-V 平台：
-
-- 定义 `__riscv` 且定义 `__riscv_vector` 时，启用 RVV FFT 分支。
-- 其它平台使用普通标量 FFT 分支。
-
-RISC-V RVV 编译示例：
-
-```bash
-riscv64-unknown-elf-g++ -O3 -std=c++17 -march=rv64gcv -mabi=lp64d
-```
-
-实际编译参数应根据芯片架构、ABI、SDK 和工具链版本调整。
-
-## 注意事项
-
-- 当前项目会将多声道音频混合为单声道后进行 FFT。
-- FFT 输入长度会补零到最近的 2 的幂。
-- 目标频率不一定刚好落在 FFT 频点上，程序会选择距离目标频率最近的 bin。
-- 如果处理 MP3 等非 WAV 格式，请确保 `ffmpeg` 已安装并能在命令行中直接调用。
+如果输出 PNG 很大，这是因为 STFT 每帧都会映射到一列像素；可以在 `stft-spectrum-analyzer/settings.h` 中调大 `STFT_HOP_SIZE` 或调小输入音频长度。
