@@ -1,4 +1,4 @@
-#include "web_spectrogram.h"
+#include <web_spectrogram.h>
 
 #if ENABLE_WEB_SPECTROGRAM
 #include <iostream>

@@ -1,5 +1,5 @@
-#include "stft.h"
-#include "stft_adaptive.h"
+#include <stft.h>
+#include <stft_adaptive.h>
 
 #include <algorithm>
 #include <cmath>

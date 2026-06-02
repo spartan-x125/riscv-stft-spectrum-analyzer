@@ -1,4 +1,4 @@
-#include "stft.h"
+#include <stft.h>
 
 #if defined(USE_RVV_STFT) && defined(__riscv_vector)
 #include <algorithm>

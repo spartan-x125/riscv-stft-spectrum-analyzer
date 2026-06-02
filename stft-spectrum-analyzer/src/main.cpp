@@ -1,7 +1,7 @@
-#include "audio_io.h"
-#include "image_writer.h"
-#include "settings.h"
-#include "stft.h"
+#include <audio_io.h>
+#include <image_writer.h>
+#include <settings.h>
+#include <stft.h>
 
 #include <filesystem>
 #include <fstream>
@@ -110,33 +110,45 @@ int main(int argc, char** argv) {
         };
 
         std::size_t success = 0;
+        std::size_t processed_channels = 0;
         for (const auto& file : files) {
             try {
                 const auto stem = file.stem().string();
                 const auto audio = DecodeAudioFile(file);
-                const auto stft = ComputeStft(audio.mono_samples, audio.sample_rate, config);
+                if (audio.channel_samples.empty()) {
+                    throw std::runtime_error("decoded audio has no channels");
+                }
 
-                const auto spectrogram_path = result_path / (stem + "-spectrogram.png");
-                const auto mel_path = result_path / (stem + "-mel_spectrogram.png");
-                const auto target_svg_path = result_path / (stem + "-target_freq.svg");
-                const auto target_txt_path = result_path / (stem + "-target_freq.txt");
+                for (std::size_t channel = 0; channel < audio.channel_samples.size(); ++channel) {
+                    const auto stft = ComputeStft(audio.channel_samples[channel], audio.sample_rate, config);
+                    const auto channel_stem = stem + "-ch" + std::to_string(channel + 1);
 
-                WriteSpectrogramPng(spectrogram_path, stft.spectrogram_db);
-                WriteSpectrogramPng(mel_path, stft.mel_spectrogram_db);
-                WriteTargetFrequencySvg(target_svg_path,
-                                        stft.times,
-                                        stft.target_frequency_db,
-                                        static_cast<float>(TARGET_FREQUENCY));
-                WriteTargetFrequencyTxt(target_txt_path, stft.times, stft.target_frequency_db);
+                    const auto spectrogram_path = result_path / (channel_stem + "-spectrogram.png");
+                    const auto mel_path = result_path / (channel_stem + "-mel_spectrogram.png");
+                    const auto target_svg_path = result_path / (channel_stem + "-target_freq.svg");
+                    const auto target_txt_path = result_path / (channel_stem + "-target_freq.txt");
+
+                    WriteSpectrogramPng(spectrogram_path, stft.spectrogram_db);
+                    WriteSpectrogramPng(mel_path, stft.mel_spectrogram_db);
+                    WriteTargetFrequencySvg(target_svg_path,
+                                            stft.times,
+                                            stft.target_frequency_db,
+                                            static_cast<float>(TARGET_FREQUENCY));
+                    WriteTargetFrequencyTxt(target_txt_path, stft.times, stft.target_frequency_db);
+
+                    ++processed_channels;
+                    std::cout << "Processed: " << file.filename() << " channel " << (channel + 1)
+                              << " of " << audio.channel_samples.size() << '\n';
+                }
 
                 ++success;
-                std::cout << "Processed: " << file.filename() << '\n';
             } catch (const std::exception& ex) {
                 std::cerr << "Failed: " << file << ": " << ex.what() << '\n';
             }
         }
 
-        std::cout << "Done. " << success << " of " << files.size() << " files processed.\n";
+        std::cout << "Done. " << success << " of " << files.size() << " files processed; "
+                  << processed_channels << " channels analyzed.\n";
         return success == 0 ? 1 : 0;
     } catch (const std::exception& ex) {
         std::cerr << "Error: " << ex.what() << '\n';

@@ -7,19 +7,25 @@
 ```text
 stft-spectrum-analyzer/
 ├── CMakeLists.txt
-├── settings.h
-├── audio_io.cpp / audio_io.h
-├── image_writer.h
-├── image_writer_scalar.cpp
-├── image_writer_rvv.cpp
-├── stft.h
-├── stft_adaptive.cpp / stft_adaptive.h
-├── stft_scalar.cpp
-├── stft_intra_rvv.cpp
-├── stft_multi_rvv.cpp
-├── uac_input.cpp / uac_input.h
-├── web_spectrogram.cpp / web_spectrogram.h
-├── main.cpp
+├── include/
+│   ├── settings.h
+│   ├── audio_io.h
+│   ├── image_writer.h
+│   ├── stft.h
+│   ├── stft_adaptive.h
+│   ├── uac_input.h
+│   └── web_spectrogram.h
+├── src/
+│   ├── audio_io.cpp
+│   ├── image_writer_scalar.cpp
+│   ├── image_writer_rvv.cpp
+│   ├── main.cpp
+│   ├── stft_adaptive.cpp
+│   ├── stft_scalar.cpp
+│   ├── stft_intra_rvv.cpp
+│   ├── stft_multi_rvv.cpp
+│   ├── uac_input.cpp
+│   └── web_spectrogram.cpp
 ├── result/
 ├── README.md
 ├── 用户手册.md
@@ -29,7 +35,7 @@ stft-spectrum-analyzer/
 ## 功能
 
 - 扫描仓库根目录 `dataset/` 下的音频文件。
-- 解码为单声道 float PCM。
+- 解码为按声道保存的 float PCM，并对每个声道独立执行 STFT。
 - 计算 STFT、频谱图和梅尔频谱图。
 - 提取 `TARGET_FREQUENCY` 对应频点的幅度时间序列。
 - 输出 PNG、SVG 和 TXT。
@@ -92,15 +98,17 @@ stft-spectrum-analyzer/result/
 以 `1.wav` 为例，输出：
 
 ```text
-1-spectrogram.png
-1-mel_spectrogram.png
-1-target_freq.svg
-1-target_freq.txt
+1-ch1-spectrogram.png
+1-ch1-mel_spectrogram.png
+1-ch1-target_freq.svg
+1-ch1-target_freq.txt
 ```
+
+多声道音频会继续生成 `1-ch2-*`、`1-ch3-*` 等对应文件。
 
 ## 配置
 
-编辑 `settings.h`：
+编辑 `include/settings.h`：
 
 ```cpp
 #define TARGET_FREQUENCY       1000.0f

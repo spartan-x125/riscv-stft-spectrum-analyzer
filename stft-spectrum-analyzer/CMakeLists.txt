@@ -7,19 +7,19 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(PROJECT2_SCALAR_SOURCES
-    audio_io.cpp
-    image_writer_scalar.cpp
-    main.cpp
-    stft_adaptive.cpp
-    stft_scalar.cpp
-    uac_input.cpp
-    web_spectrogram.cpp
+    src/audio_io.cpp
+    src/image_writer_scalar.cpp
+    src/main.cpp
+    src/stft_adaptive.cpp
+    src/stft_scalar.cpp
+    src/uac_input.cpp
+    src/web_spectrogram.cpp
 )
 
 set(PROJECT2_RVV_SOURCES
-    image_writer_rvv.cpp
-    stft_intra_rvv.cpp
-    stft_multi_rvv.cpp
+    src/image_writer_rvv.cpp
+    src/stft_intra_rvv.cpp
+    src/stft_multi_rvv.cpp
 )
 
 set(PROJECT2_SOURCES ${PROJECT2_SCALAR_SOURCES})
@@ -38,7 +38,7 @@ if (CMAKE_SYSTEM_PROCESSOR MATCHES "riscv|RISC-V")
 endif()
 
 add_executable(stft-spectrum-analyzer ${PROJECT2_SOURCES})
-target_include_directories(stft-spectrum-analyzer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(stft-spectrum-analyzer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(stft-spectrum-analyzer PRIVATE -Wall -Wextra -Wpedantic)

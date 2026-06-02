@@ -1,9 +1,0 @@
-audio_file=D:\code\risc-v\dataset\ÂåÌìÒÀ,GuaYsu - ´º·çÏÎ¼ã.mp3
-sample_rate=44100
-channels=1
-sample_count=9982547
-fft_size=16777216
-target_frequency_hz=1000.0000000000
-selected_bin=380436
-selected_frequency_hz=1000.0006914139
-magnitude=437.4052316663

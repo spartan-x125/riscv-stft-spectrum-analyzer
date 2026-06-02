@@ -1,4 +1,4 @@
-#include "uac_input.h"
+#include <uac_input.h>
 
 #if ENABLE_UAC_INPUT
 #if defined(PROJECT2_HAS_PORTAUDIO)

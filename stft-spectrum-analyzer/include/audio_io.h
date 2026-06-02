@@ -7,7 +7,7 @@
 struct AudioBuffer {
     unsigned sample_rate = 0;
     unsigned channels = 0;
-    std::vector<float> mono_samples;
+    std::vector<std::vector<float>> channel_samples;
 };
 
 bool IsAudioFile(const std::filesystem::path& path);

@@ -40,7 +40,7 @@ Windows：
 输出在：
 
 ```text
-dataset/result/
+audio-fft-extractor/result/
 ```
 
 ## RISC-V RVV

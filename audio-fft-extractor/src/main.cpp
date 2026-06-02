@@ -36,6 +36,27 @@ std::filesystem::path ResolveDatasetPath(const char* argv0) {
     throw std::runtime_error("Dataset directory not found. Check TARGET_DIRECTORY in settings.h.");
 }
 
+std::filesystem::path ResolveResultPath(const char* argv0) {
+    const auto exe_dir = std::filesystem::absolute(std::filesystem::path(argv0)).parent_path();
+    const std::vector<std::filesystem::path> candidates = {
+        std::filesystem::current_path() / "audio-fft-extractor" / "result",
+        exe_dir / ".." / ".." / "result",
+        exe_dir / ".." / "result",
+        std::filesystem::current_path() / "result",
+    };
+
+    for (const auto& candidate : candidates) {
+        std::error_code ec;
+        const auto parent = std::filesystem::weakly_canonical(candidate.parent_path(), ec);
+        if (!ec && std::filesystem::is_directory(parent)) {
+            std::filesystem::create_directories(candidate);
+            return std::filesystem::weakly_canonical(candidate);
+        }
+    }
+
+    throw std::runtime_error("Cannot locate audio-fft-extractor result directory.");
+}
+
 std::vector<std::filesystem::path> CollectAudioFiles(const std::filesystem::path& dataset_path,
                                                      const std::filesystem::path& result_path) {
     std::vector<std::filesystem::path> files;
@@ -164,8 +185,7 @@ void WriteSpectrumSvg(const std::filesystem::path& output_path,
 int main(int argc, char** argv) {
     try {
         const std::filesystem::path dataset_path = ResolveDatasetPath(argc > 0 ? argv[0] : "");
-        const std::filesystem::path result_path = dataset_path / "result";
-        std::filesystem::create_directories(result_path);
+        const std::filesystem::path result_path = ResolveResultPath(argc > 0 ? argv[0] : "");
 
         std::cout << "Dataset: " << dataset_path << '\n';
         std::cout << "Result: " << result_path << '\n';

@@ -14,19 +14,13 @@
 ├── audio-fft-extractor/
 │   ├── CMakeLists.txt
 │   ├── include/
-│   └── src/
-├── dataset/
+│   ├── src/
 │   └── result/
+├── dataset/
 ├── stft-spectrum-analyzer/
 │   ├── CMakeLists.txt
-│   ├── audio_io.cpp / audio_io.h
-│   ├── image_writer_scalar.cpp
-│   ├── image_writer_rvv.cpp
-│   ├── stft.h
-│   ├── stft_adaptive.cpp / stft_adaptive.h
-│   ├── stft_scalar.cpp
-│   ├── stft_intra_rvv.cpp
-│   ├── stft_multi_rvv.cpp
+│   ├── include/
+│   ├── src/
 │   ├── result/
 │   ├── README.md
 │   ├── 用户手册.md
@@ -129,4 +123,4 @@ RVV STFT acceleration: Enabled
 
 如果 RISC-V 编译报 RVV intrinsic 未声明，请确认工具链支持 RVV 1.0，且 `-march` 包含 `v` 扩展，例如 `rv64gcv`。
 
-如果输出 PNG 很大，这是因为 STFT 每帧都会映射到一列像素；可以在 `stft-spectrum-analyzer/settings.h` 中调大 `STFT_HOP_SIZE` 或调小输入音频长度。
+如果输出 PNG 很大，这是因为 STFT 每帧都会映射到一列像素；可以在 `stft-spectrum-analyzer/include/settings.h` 中调大 `STFT_HOP_SIZE` 或调小输入音频长度。

@@ -1,4 +1,4 @@
-#include "stft_adaptive.h"
+#include <stft_adaptive.h>
 
 #if defined(USE_RVV_STFT) && defined(__riscv_vector)
 #include <riscv_vector.h>

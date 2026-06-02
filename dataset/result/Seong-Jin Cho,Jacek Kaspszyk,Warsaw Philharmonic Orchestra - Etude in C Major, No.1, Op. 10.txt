@@ -1,9 +1,0 @@
-audio_file=D:\code\risc-v\dataset\Seong-Jin Cho,Jacek Kaspszyk,Warsaw Philharmonic Orchestra - Etude in C Major, No.1, Op. 10.wav
-sample_rate=44100
-channels=2
-sample_count=5467224
-fft_size=8388608
-target_frequency_hz=1000.0000000000
-selected_bin=190218
-selected_frequency_hz=1000.0006914139
-magnitude=163.0273210200
